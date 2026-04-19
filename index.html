@@ -597,27 +597,22 @@
     };
 
     try {
-      if (MAKE_HOOK === 'https://hook.us2.make.com/3e45yuw16t8k9mkmipipgxisun3nk4bs') {
-        // ── DEMO MODE: simulate with a real esignatures.com test URL ──
-        await new Promise(r => setTimeout(r, 1200));
-        // In real mode, Make returns sign_page_url from esignatures.com API response
-        // For now show the frame with a placeholder
-        showSignFrame('https://esignatures.com/demo_sign_page');
-        return;
-      }
-
-      // Real mode: Make webhook must respond with JSON { sign_page_url: "..." }
+      // Real mode: call Make webhook → returns { sign_page_url: "..." }
       const resp = await fetch(MAKE_HOOK, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+
       const data = await resp.json();
+      console.log('Make response:', data);
 
       if (data.sign_page_url) {
         showSignFrame(data.sign_page_url);
       } else {
-        throw new Error('No sign_page_url in response');
+        throw new Error('No sign_page_url in response: ' + JSON.stringify(data));
       }
 
     } catch(e) {
