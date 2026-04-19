@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feel Dance Team — New Student Registration</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --purple: #7a6aaa;
+    --purple-dark: #5e5190;
+    --purple-deep: #3d3570;
+    --cream: #e8dfc8;
+    --cream-light: #f2ede0;
+    --white: #ffffff;
+    --muted: rgba(255,255,255,0.88);
+    --dim: rgba(255,255,255,0.6);
+    --border: rgba(255,255,255,0.13);
+    --border-h: rgba(255,255,255,0.32);
+    --glass: rgba(255,255,255,0.07);
+    --glass-h: rgba(255,255,255,0.12);
+  }
+  html { scroll-behavior: smooth; }
+  body { background: var(--purple); font-family: 'DM Sans', sans-serif; color: var(--white); min-height: 100vh; overflow-x: hidden; }
+
+  /* BG circles */
+  .circles { position: fixed; top: -15vh; left: 50%; transform: translateX(-50%); width: 1000px; height: 800px; pointer-events: none; z-index: 0; opacity: 0.18; }
+  .circles circle { fill: none; stroke: white; stroke-width: 1; }
+
+  /* NAV */
+  nav { position: relative; z-index: 10; padding: 22px 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .logo-script { font-family: 'Playfair Display', serif; font-style: italic; font-size: 26px; color: var(--white); line-height: 1; }
+  .logo-sub { font-size: 8px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cream); line-height: 1.4; }
+  .nav-back { font-size: 12px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  .nav-back:hover { color: var(--white); }
+
+  /* HEADER */
+  .hdr { position: relative; z-index: 10; padding: 52px 40px 48px; border-bottom: 1px solid var(--border); }
+  .hdr-tag { font-size: 10px; font-weight: 500; letter-spacing: 0.24em; text-transform: uppercase; color: var(--cream); margin-bottom: 18px; }
+  .hdr h1 { font-family: 'Playfair Display', serif; font-size: clamp(34px, 5vw, 56px); font-weight: 400; line-height: 1.08; margin-bottom: 18px; }
+  .hdr h1 em { font-style: italic; color: var(--cream); }
+  .hdr p { font-size: 14px; line-height: 1.82; color: var(--muted); font-weight: 300; max-width: 400px; }
+
+  /* PROGRESS */
+  .pbar { height: 2px; background: rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 100; }
+  .pfill { height: 100%; width: 0%; background: var(--cream); transition: width 0.5s ease; }
+
+  /* STEP NAV */
+  .snav { position: relative; z-index: 10; display: flex; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+  .snav::-webkit-scrollbar { display: none; }
+  .sdot { flex: 1; min-width: 68px; padding: 13px 6px; text-align: center; font-size: 9px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dim); border-bottom: 1.5px solid transparent; transition: all 0.25s; white-space: nowrap; }
+  .sdot.active { color: var(--white); border-bottom-color: var(--cream); }
+  .sdot.done { color: var(--muted); }
+
+  /* CONTENT */
+  .content { position: relative; z-index: 10; max-width: 660px; margin: 0 auto; padding: 44px 28px 100px; }
+
+  /* PANELS */
+  .panel { display: none; }
+  .panel.on { display: block; animation: up 0.32s ease; }
+  @keyframes up { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+
+  /* SECTION LABEL */
+  .slabel { font-size: 9px; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cream); margin: 0 0 22px; display: flex; align-items: center; gap: 14px; }
+  .slabel::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* WHO CARDS */
+  .who-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 36px; }
+  .wcard { background: var(--glass); border: 1.5px solid var(--border); border-radius: 16px; padding: 32px 26px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+  .wcard::before { content: ''; position: absolute; top: -40px; right: -40px; width: 110px; height: 110px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.07); transition: transform 0.3s; }
+  .wcard:hover { border-color: var(--border-h); background: var(--glass-h); }
+  .wcard:hover::before { transform: scale(1.4); }
+  .wcard.sel { border-color: var(--cream); background: rgba(232,223,200,0.11); }
+  .wcard-chk { position: absolute; top: 14px; right: 14px; width: 20px; height: 20px; border: 1.5px solid var(--border-h); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: transparent; transition: all 0.2s; }
+  .wcard.sel .wcard-chk { background: var(--cream); border-color: var(--cream); color: var(--purple-deep); font-weight: 700; }
+  .wcard-icon { font-size: 34px; margin-bottom: 16px; display: block; }
+  .wcard-title { font-family: 'Playfair Display', serif; font-size: 21px; font-weight: 400; color: var(--white); margin-bottom: 8px; }
+  .wcard-sub { font-size: 12px; color: var(--muted); line-height: 1.7; }
+
+  /* FIELD CARD */
+  .fcard { background: var(--glass); border: 1px solid var(--border); border-radius: 12px; padding: 26px 22px; margin-bottom: 12px; }
+  .fg { display: flex; flex-direction: column; gap: 16px; }
+  .fr { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .f { display: flex; flex-direction: column; gap: 6px; }
+  .f label { font-size: 9px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+  .f label span { color: var(--cream); }
+  .f input, .f textarea { width: 100%; background: rgba(255,255,255,0.07); border: 1px solid var(--border); border-radius: 8px; padding: 10px 13px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--white); outline: none; transition: all 0.15s; -webkit-appearance: none; }
+  .f input::placeholder { color: var(--dim); }
+  .f input:focus, .f textarea:focus { border-color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.11); }
+  .f textarea { resize: vertical; min-height: 78px; }
+
+  /* Q CARD */
+  .qcard { background: var(--glass); border: 1px solid var(--border); border-radius: 12px; padding: 22px 20px 18px; margin-bottom: 10px; position: relative; }
+  .qcard.req::before { content: ''; position: absolute; left: 0; top: 18px; bottom: 18px; width: 3px; background: var(--cream); border-radius: 0 2px 2px 0; opacity: 0.55; }
+  .qlabel { font-size: 14px; font-weight: 400; color: var(--white); line-height: 1.5; margin-bottom: 4px; }
+  .qhint { font-size: 11px; color: var(--muted); font-style: italic; margin-bottom: 14px; }
+
+  /* OPTIONS */
+  .opts { display: flex; flex-direction: column; gap: 6px; }
+  .opt { display: flex; align-items: flex-start; gap: 12px; padding: 10px 13px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.14s; font-size: 13px; }
+  .opt:hover { border-color: var(--border-h); background: rgba(255,255,255,0.04); }
+  .opt.sel { border-color: var(--cream); background: rgba(232,223,200,0.1); }
+  .odot { width: 16px; height: 16px; border: 1.5px solid rgba(255,255,255,0.3); border-radius: 50%; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: all 0.14s; }
+  .opt.sel .odot { border-color: var(--cream); background: var(--cream); }
+  .opt.sel .odot::after { content: ''; width: 6px; height: 6px; background: var(--purple-deep); border-radius: 50%; }
+  .otxt strong { display: block; font-weight: 500; color: var(--white); }
+  .otxt span { font-size: 11px; color: var(--muted); }
+
+  /* TRACK CARDS */
+  .tgrid { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+  .tcard { border: 1.5px solid var(--border); border-radius: 10px; padding: 16px 18px; cursor: pointer; transition: all 0.14s; background: transparent; position: relative; }
+  .tcard:hover { border-color: var(--border-h); background: rgba(255,255,255,0.04); }
+  .tcard.sel { border-color: var(--cream); background: rgba(232,223,200,0.1); }
+  .tcard.sel::after { content: '✓'; position: absolute; top: 13px; right: 14px; width: 20px; height: 20px; background: var(--cream); color: var(--purple-deep); border-radius: 50%; font-size: 10px; font-weight: 700; text-align: center; line-height: 20px; }
+  .ttag { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cream); margin-bottom: 4px; font-weight: 500; }
+  .tname { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 400; color: var(--white); margin-bottom: 4px; }
+  .tdesc { font-size: 11px; color: var(--muted); line-height: 1.65; padding-right: 26px; }
+
+  /* PROGRAM CARDS */
+  .pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px; }
+  .pcard { border: 1.5px solid var(--border); border-radius: 12px; padding: 22px 18px; cursor: pointer; transition: all 0.18s; background: transparent; position: relative; }
+  .pcard:hover { border-color: var(--border-h); background: rgba(255,255,255,0.04); }
+  .pcard.sel { border-color: var(--cream); background: rgba(232,223,200,0.1); }
+  .pcard.sel::after { content: '✓'; position: absolute; top: 11px; right: 11px; width: 18px; height: 18px; background: var(--cream); color: var(--purple-deep); border-radius: 50%; font-size: 10px; font-weight: 700; text-align: center; line-height: 18px; }
+  .picon { font-size: 26px; margin-bottom: 10px; }
+  .pname { font-size: 15px; font-weight: 500; color: var(--white); margin-bottom: 4px; }
+  .pprice { font-size: 11px; color: var(--cream); font-weight: 500; margin-bottom: 6px; }
+  .pdesc { font-size: 11px; color: var(--muted); line-height: 1.65; }
+
+  /* ACTIVITY TABLE */
+  .atable { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .atable th { font-size: 9px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 0 7px 9px; border-bottom: 1px solid var(--border); }
+  .atable td { padding: 4px 5px; }
+  .atable input { width: 100%; background: rgba(255,255,255,0.07); border: 1px solid var(--border); border-radius: 6px; padding: 7px 9px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--white); outline: none; }
+  .atable input::placeholder { color: var(--dim); }
+  .atable input:focus { border-color: rgba(255,255,255,0.3); }
+  .add-row { background: none; border: 1px dashed var(--border); border-radius: 8px; padding: 8px 14px; font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--muted); cursor: pointer; margin-top: 10px; transition: all 0.14s; width: 100%; }
+  .add-row:hover { border-color: var(--cream); color: var(--cream); }
+  .act-warn { display: none; margin-top: 12px; background: rgba(232,223,200,0.1); border: 1px solid rgba(232,223,200,0.25); border-left: 3px solid var(--cream); border-radius: 8px; padding: 11px 13px; font-size: 12px; line-height: 1.75; color: rgba(255,255,255,0.9); }
+
+  /* ACK */
+  .ackbox { background: rgba(0,0,0,0.18); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-top: 22px; }
+  .ackbox h3 { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 400; color: var(--white); margin-bottom: 8px; }
+  .ackbox p { font-size: 12px; color: var(--muted); line-height: 1.75; margin-bottom: 12px; }
+  .arow { display: flex; align-items: flex-start; gap: 11px; margin-top: 9px; cursor: pointer; }
+  .achk { width: 17px; height: 17px; border: 1.5px solid rgba(255,255,255,0.25); border-radius: 4px; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: all 0.14s; }
+  .arow.chk .achk { background: var(--cream); border-color: var(--cream); }
+  .arow.chk .achk::after { content: '✓'; color: var(--purple-deep); font-size: 11px; font-weight: 700; }
+  .arow span { font-size: 12px; color: var(--muted); line-height: 1.65; }
+  .arow.chk span { color: rgba(255,255,255,0.8); }
+
+  /* CONTRACT */
+  .cbox { background: var(--glass); border: 1px solid var(--border); border-radius: 16px; padding: 38px 30px; text-align: center; margin-bottom: 18px; }
+  .cbox-icon { font-size: 50px; margin-bottom: 16px; display: block; }
+  .cbox h2 { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 400; color: var(--white); margin-bottom: 10px; }
+  .cbox p { font-size: 13px; color: var(--muted); line-height: 1.8; max-width: 360px; margin: 0 auto 26px; }
+  .cta { display: inline-block; background: var(--cream); color: var(--purple-deep); padding: 13px 34px; border-radius: 50px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-decoration: none; border: none; cursor: pointer; transition: all 0.18s; }
+  .cta:hover { background: var(--cream-light); transform: translateY(-1px); }
+  .csigned { margin-top: 18px; display: none; justify-content: center; }
+  .cpill { background: rgba(90,200,120,0.14); border: 1px solid rgba(90,200,120,0.28); border-radius: 20px; padding: 5px 14px; font-size: 11px; color: #7de0a0; display: flex; align-items: center; gap: 6px; }
+
+  /* INVOICE */
+  .inv { background: var(--glass); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 18px; }
+  .inv-top { background: rgba(0,0,0,0.22); padding: 16px 22px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+  .inv-top span { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cream); }
+  .inv-top strong { font-size: 13px; color: var(--white); }
+  .inv-lines { padding: 0 22px; }
+  .iline { display: flex; justify-content: space-between; padding: 13px 0; border-bottom: 1px solid var(--border); font-size: 13px; align-items: center; }
+  .iline:last-child { border-bottom: none; }
+  .iline.tot { border-top: 1px solid rgba(255,255,255,0.18); padding-top: 15px; margin-top: 3px; }
+  .iline.tot .il { font-weight: 600; font-size: 14px; }
+  .iline.tot .iv { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 400; color: var(--cream); }
+  .il { color: rgba(255,255,255,0.9); }
+  .iv { font-weight: 500; color: var(--white); }
+  .iv.free { color: #7de0a0; font-weight: 400; font-size: 12px; }
+  .inv-foot { padding: 18px 22px 22px; }
+  .paybtn { display: block; width: 100%; background: var(--cream); color: var(--purple-deep); padding: 14px; border-radius: 50px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; border: none; cursor: pointer; transition: all 0.18s; }
+  .paybtn:hover { background: var(--cream-light); transform: translateY(-1px); }
+  .skipbtn { display: block; width: 100%; background: none; border: none; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--muted); cursor: pointer; transition: color 0.15s; text-decoration: underline; text-underline-offset: 3px; margin-top: 8px; }
+  .skipbtn:hover { color: var(--white); }
+  .pay-note { margin-top: 11px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px; padding: 11px 13px; font-size: 11px; color: rgba(255,255,255,0.88); line-height: 1.7; }
+  .pay-note strong { color: rgba(255,255,255,0.95); }
+  .bill-note { text-align: center; font-size: 11px; color: var(--dim); margin-top: 11px; }
+
+  /* BUTTONS */
+  .brow { display: flex; gap: 11px; margin-top: 38px; }
+  .bbk { background: none; border: 1.5px solid var(--border); border-radius: 50px; padding: 12px 22px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); cursor: pointer; transition: all 0.14s; white-space: nowrap; }
+  .bbk:hover { border-color: var(--border-h); color: var(--white); }
+  .bnx { flex: 1; background: var(--cream); color: var(--purple-deep); border: none; border-radius: 50px; padding: 13px 28px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; cursor: pointer; transition: all 0.18s; }
+  .bnx:hover { background: var(--cream-light); transform: translateY(-1px); }
+  .bnx:disabled { opacity: 0.38; cursor: not-allowed; transform: none; }
+
+  /* INFO BOX */
+  .ibox { background: rgba(232,223,200,0.08); border: 1px solid rgba(232,223,200,0.18); border-radius: 10px; padding: 13px 15px; font-size: 12px; color: rgba(255,255,255,0.88); line-height: 1.75; margin-bottom: 16px; }
+  .ibox strong { color: var(--cream); }
+
+  /* SUCCESS */
+  .success { text-align: center; padding: 44px 0 20px; }
+  .s-ring { width: 76px; height: 76px; background: rgba(232,223,200,0.12); border: 2px solid var(--cream); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 22px; font-size: 30px; }
+  .success h2 { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 400; color: var(--white); margin-bottom: 12px; }
+  .success > p { font-size: 14px; color: var(--muted); line-height: 1.85; max-width: 360px; margin: 0 auto 32px; }
+  .nsteps { text-align: left; max-width: 360px; margin: 0 auto; }
+  .ns { display: flex; gap: 14px; align-items: flex-start; padding: 13px 0; border-bottom: 1px solid var(--border); }
+  .ns:last-child { border-bottom: none; }
+  .ns-n { width: 24px; height: 24px; border-radius: 50%; background: var(--cream); color: var(--purple-deep); font-size: 11px; font-weight: 700; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .ns-t { font-size: 13px; color: var(--white); line-height: 1.55; }
+  .ns-t span { font-size: 11px; color: var(--muted); display: block; margin-top: 2px; }
+
+  .foot { text-align: center; margin-top: 28px; font-size: 11px; color: var(--dim); }
+
+  @media (max-width: 520px) {
+    nav { padding: 16px 18px; }
+    .hdr { padding: 32px 18px 32px; }
+    .content { padding: 28px 16px 80px; }
+    .who-grid { grid-template-columns: 1fr; }
+    .pgrid { grid-template-columns: 1fr; }
+    .fr { grid-template-columns: 1fr; }
+    .brow { flex-direction: column-reverse; }
+  }
+</style>
+</head>
+<body>
+
+
+
+<nav>
+  <a href="https://www.feeldance.team" class="logo" target="_blank">
+    <div class="logo-script">feel</div>
+    <div class="logo-sub">Dance Team</div>
+  </a>
+  <a href="https://www.feeldance.team" class="nav-back">← Back to site</a>
+</nav>
+
+<div class="hdr">
+  <div class="hdr-tag">New Student Registration · Mountain View, CA</div>
+  <h1>With us,<br>everyone can<br><em>ballroom dance.</em></h1>
+  <p>This takes 3–5 minutes. We'll match you with the right program, handle the paperwork, and get you ready for your first class.</p>
+</div>
+<div class="pbar"><div class="pfill" id="prog"></div></div>
+
+<div class="snav">
+  <div class="sdot active">Who</div><div class="sdot">Info</div><div class="sdot">Goals</div>
+  <div class="sdot">Program</div><div class="sdot">Contract</div>
+</div>
+
+<div class="content">
+
+  <!-- STEP 0 -->
+  <div class="panel on" id="s0">
+    <div class="slabel">Who is registering today?</div>
+    <div class="who-grid">
+      <div class="wcard" id="wc" onclick="pick('child')">
+        <div class="wcard-chk" id="chkC">✓</div>
+        <div class="wcard-title">Child</div>
+        <div class="wcard-sub">Under 18 years old.<br>A parent or guardian completes this form.</div>
+      </div>
+      <div class="wcard" id="wa" onclick="pick('adult')">
+        <div class="wcard-chk" id="chkA">✓</div>
+        <div class="wcard-title">Adult</div>
+        <div class="wcard-sub">18 years or older.<br>Registering for yourself.</div>
+      </div>
+    </div>
+    <div class="brow"><div></div><button class="bnx" id="b0" onclick="next()">Continue →</button></div>
+    <div class="foot">feeldance.team · Mountain View, CA · (530) 407-5171</div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="panel" id="s1">
+    <div id="s1c">
+      <div class="slabel">Parent / Guardian</div>
+      <div class="fcard"><div class="fg">
+        <div class="fr">
+          <div class="f"><label>Full name <span>*</span></label><input id="pn" type="text" placeholder="First and last name"></div>
+          <div class="f"><label>Email <span>*</span></label><input id="pe" type="email" placeholder="your@email.com"></div>
+        </div>
+        <div class="f"><label>Phone (WhatsApp) <span>*</span></label><input id="pp" type="tel" placeholder="+1 (650) 000-0000"></div>
+      </div></div>
+      <div class="slabel">Child's Information</div>
+      <div class="fcard"><div class="fg">
+        <div class="fr">
+          <div class="f"><label>Child's full name <span>*</span></label><input id="cn" type="text" placeholder="First and last name"></div>
+          <div class="f"><label>Date of Birth <span>*</span></label><input id="cdob" type="date"></div>
+        </div>
+        <div class="f"><label>Medical conditions / injuries (optional)</label><input id="cm" type="text" placeholder="e.g. asthma, knee injury — or leave blank"></div>
+      </div></div>
+    </div>
+    <div id="s1a" style="display:none">
+      <div class="slabel">Your Information</div>
+      <div class="fcard"><div class="fg">
+        <div class="fr">
+          <div class="f"><label>Full name <span>*</span></label><input id="an" type="text" placeholder="First and last name"></div>
+          <div class="f"><label>Email <span>*</span></label><input id="ae" type="email" placeholder="your@email.com"></div>
+        </div>
+        <div class="f"><label>Phone (WhatsApp) <span>*</span></label><input id="ap" type="tel" placeholder="+1 (650) 000-0000"></div>
+        <div class="f"><label>Injuries or physical limitations (optional)</label><input id="am" type="text" placeholder="e.g. bad knee, back issues — or leave blank"></div>
+      </div></div>
+    </div>
+    <div class="brow"><button class="bbk" onclick="back()">← Back</button><button class="bnx" onclick="next()">Continue →</button></div>
+    <div class="foot">feeldance.team · Mountain View, CA</div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="panel" id="s2">
+    <!-- CHILD GOALS -->
+    <div id="s2c">
+      <div class="slabel">About Your Child</div>
+      <div class="qcard req">
+        <div class="qlabel">1. Why is your child taking dance lessons?</div>
+        <div class="qhint">Choose what feels most true right now.</div>
+        <div class="opts" data-type="radio" data-q="c1">
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>Fun &amp; social</strong><span>Enjoyment, friends, confidence</span></div></div>
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>Physical development</strong><span>Coordination, posture, fitness, discipline</span></div></div>
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>Competitive dancing</strong><span>Serious training, competitions, rankings</span></div></div>
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>Not sure yet</strong><span>We want to explore first</span></div></div>
+        </div>
+      </div>
+      <div class="qcard req">
+        <div class="qlabel">2. Does your child have prior dance experience?</div>
+        <div class="opts" data-type="radio" data-q="c2">
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>None</strong><span>First time dancing</span></div></div>
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>Some</strong><span>A few classes or casual experience</span></div></div>
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>Ballroom specifically</strong><span>Has trained in ballroom or Latin</span></div></div>
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>Other dance styles</strong><span>Ballet, hip hop, jazz, gymnastics, etc.</span></div></div>
+        </div>
+      </div>
+      <div class="qcard req">
+        <div class="qlabel">3. Do you want your child to participate in competitions?</div>
+        <div class="opts" data-type="radio" data-q="c3">
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>Yes, that's a goal</strong><span>We want to compete and work toward rankings</span></div></div>
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>Maybe someday</strong><span>Open to it if it makes sense</span></div></div>
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>No — just for fun</strong><span>Showcases or no performances at all</span></div></div>
+        </div>
+      </div>
+      <div class="slabel">Training Track</div>
+      <div class="qcard req">
+        <div class="qlabel">4. Which track fits your family's goals?</div>
+        <div class="qhint">Your instructor will confirm this after the first class.</div>
+        <div class="tgrid" id="tCards">
+          <div class="tcard" onclick="selTrack(this,'recreational')"><div class="ttag">Track A</div><div class="tname">Recreational</div><div class="tdesc">Dance for fun and fitness. Group classes, no competition pressure. Perfect for kids exploring dance alongside other activities.</div></div>
+          <div class="tcard" onclick="selTrack(this,'competitive')"><div class="ttag">Track B</div><div class="tname">Competitive</div><div class="tdesc">High-level training for serious competitors. Intensive schedule, national/international tournaments.</div></div>
+          <div class="tcard" onclick="selTrack(this,'scholarship')"><div class="ttag">Track C</div><div class="tname">Scholarship Athletes</div><div class="tdesc">Structured competitive training. Requires ballroom as the primary athletic commitment. Regular competitions expected.</div></div>
+        </div>
+      </div>
+      <div class="slabel">Other Activities</div>
+      <div class="qcard">
+        <div class="qlabel">5. What other activities does your child do outside Feel Dance?</div>
+        <div class="qhint">List each activity and approximate hours/week.</div>
+        <table class="atable"><thead><tr><th style="width:60%">Activity</th><th>Hours / week</th></tr></thead>
+          <tbody id="aRows">
+            <tr><td><input type="text" placeholder="e.g. Ballet, Soccer, Piano…"></td><td><input type="number" min="0" max="40" placeholder="hrs" oninput="chkHrs()"></td></tr>
+            <tr><td><input type="text" placeholder="Activity"></td><td><input type="number" min="0" max="40" placeholder="hrs" oninput="chkHrs()"></td></tr>
+          </tbody>
+        </table>
+        <button class="add-row" onclick="addRow()">+ Add another activity</button>
+        <div class="act-warn" id="aWarn"><strong style="color:var(--cream)">Something to consider.</strong> Your child's schedule shows significant hours in other activities. The Scholarship Athletes track requires ballroom as the <strong>primary athletic commitment</strong>. We'll discuss expectations after the first class.</div>
+      </div>
+      <div id="ackBox" style="display:none">
+        <div class="ackbox">
+          <h3>Before you continue</h3>
+          <p>Competition results are tied to ballroom-specific training hours. Time in other disciplines does not substitute for this.</p>
+          <div class="arow" id="a1" onclick="this.classList.toggle('chk')"><div class="achk"></div><span>Competition results depend on ballroom-specific hours — not time in other sports or dance disciplines.</span></div>
+          <div class="arow" id="a2" onclick="this.classList.toggle('chk')"><div class="achk"></div><span>The Scholarship rate ($85/lesson) applies only when all track requirements are fully met — no exceptions.</span></div>
+        </div>
+      </div>
+    </div>
+    <!-- ADULT GOALS -->
+    <div id="s2a" style="display:none">
+      <div class="slabel">Your Goals</div>
+      <div class="qcard req">
+        <div class="qlabel">1. What's your primary goal for dance lessons?</div>
+        <div class="qhint">Choose what feels most true right now.</div>
+        <div class="opts" data-type="radio" data-q="a1">
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>Social dancing</strong><span>Dance at parties, events, or social venues</span></div></div>
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>Fitness &amp; wellness</strong><span>Dance as a fun way to stay active and healthy</span></div></div>
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>Competitive dancing</strong><span>Serious training, ballroom tournaments</span></div></div>
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>Specific event</strong><span>Wedding, performance, showcase, or special occasion</span></div></div>
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>Not sure yet</strong><span>I'm curious and want to explore</span></div></div>
+        </div>
+      </div>
+      <div class="qcard req">
+        <div class="qlabel">2. What is your dance experience?</div>
+        <div class="opts" data-type="radio" data-q="a2">
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>Complete beginner</strong><span>Never taken formal dance lessons</span></div></div>
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>Some experience</strong><span>A few classes, social dancing, or informal practice</span></div></div>
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>Experienced</strong><span>Trained in dance, solid foundation</span></div></div>
+        </div>
+      </div>
+      <div class="qcard req">
+        <div class="qlabel">3. Are you interested in competitions or performances?</div>
+        <div class="opts" data-type="radio" data-q="a3">
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>Yes, I'd love to compete</strong><span>Train for tournaments</span></div></div>
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>Maybe a showcase</strong><span>Studio performance sounds fun, not tournaments</span></div></div>
+          <div class="opt"><div class="odot"></div><div class="otxt"><strong>No — just for myself</strong><span>Personal enjoyment, no performances</span></div></div>
+        </div>
+      </div>
+      <div class="qcard">
+        <div class="qlabel">4. Anything we should know before your first class?</div>
+        <div class="qhint">Optional — always helpful.</div>
+        <textarea id="aNotes" placeholder="E.g. I have a bad knee, I'm nervous, I only have Tuesday evenings free…" style="width:100%;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--white);outline:none;resize:vertical;min-height:78px;"></textarea>
+      </div>
+    </div>
+    <div class="brow"><button class="bbk" onclick="back()">← Back</button><button class="bnx" onclick="next()">Continue →</button></div>
+    <div class="foot">feeldance.team · Mountain View, CA</div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="panel" id="s3">
+    <div class="slabel">Choose your program</div>
+    <div class="ibox" id="pInfo">Select the format that works best for you. You can always adjust after your trial class.</div>
+    <div class="qcard req">
+      <div class="qlabel">Which class format are you signing up for?</div>
+      <div class="pgrid">
+        <div class="pcard" onclick="selProg(this,'group')"><div class="picon">👥</div><div class="pname">Group Classes</div><div class="pprice">Monthly membership</div><div class="pdesc">Structured curriculum with peers. Great for beginners. Paid monthly via Stripe.</div></div>
+        <div class="pcard" onclick="selProg(this,'private')"><div class="picon">🎯</div><div class="pname">Private Lessons</div><div class="pprice">Per lesson / package</div><div class="pdesc">One-on-one coaching. Fast progress. Invoiced via Zoho — Zelle accepted.</div></div>
+      </div>
+    </div>
+    <div class="ibox" id="pNote" style="display:none"></div>
+    <div class="brow"><button class="bbk" onclick="back()">← Back</button><button class="bnx" onclick="next()">Continue →</button></div>
+    <div class="foot">feeldance.team · Mountain View, CA</div>
+  </div>
+
+  <!-- STEP 4 — CONTRACT -->
+  <div class="panel" id="s4">
+    <div class="slabel">Service Agreement</div>
+
+    <!-- IDLE STATE -->
+    <div id="cIdle">
+      <div class="cbox">
+        <span class="cbox-icon">📄</span>
+        <h2 id="ctitle">Payment &amp; Release Form</h2>
+        <p>We'll load the agreement right here — sign with your finger, no email needed.</p>
+        <button class="cta" id="cLoadBtn" onclick="loadContract()">Open &amp; Sign Agreement →</button>
+      </div>
+      <div class="ibox" style="margin-top:16px;">
+        Covers payment policy, cancellation terms, and photo/video consent. You'll receive a signed copy by email after completing.
+      </div>
+    </div>
+
+    <!-- LOADING STATE -->
+    <div id="cLoading" style="display:none;">
+      <div class="cbox" style="padding:48px 32px;">
+        <div style="font-size:36px;margin-bottom:16px;animation:spin 1s linear infinite;display:inline-block;">⟳</div>
+        <h2 style="font-size:20px;">Preparing your agreement…</h2>
+        <p style="font-size:13px;">This takes just a second.</p>
+      </div>
+    </div>
+
+    <!-- IFRAME STATE -->
+    <div id="cFrame" style="display:none;">
+      <div class="ibox" style="margin-bottom:12px;">
+        <strong>Sign below</strong> — scroll through the agreement, then tap the signature field to sign with your finger.
+      </div>
+      <div style="border:1px solid var(--border); border-radius:12px; overflow:hidden; background:white;">
+        <iframe
+          id="signIframe"
+          src=""
+          style="width:100%; height:75vh; min-height:500px; border:none; display:block;"
+          allow="camera"
+          scrolling="yes"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- SIGNED STATE -->
+    <div id="cSigned" style="display:none;">
+      <div class="cbox">
+        <div style="font-size:52px;margin-bottom:16px;">✅</div>
+        <h2>Agreement signed!</h2>
+        <p>Thank you! A signed copy has been sent to your email. You're all set.</p>
+      </div>
+    </div>
+
+    <!-- ERROR STATE -->
+    <div id="cError" style="display:none;">
+      <div class="cbox">
+        <span class="cbox-icon">⚠️</span>
+        <h2>Something went wrong</h2>
+        <p>We couldn't load the agreement. Please contact us at <strong>owner@feeldance.team</strong> or try again.</p>
+        <button class="cta" onclick="retrySend()" style="margin-top:8px;">Try Again →</button>
+      </div>
+    </div>
+
+    <div class="brow">
+      <button class="bbk" onclick="back()">← Back</button>
+      <button class="bnx" id="cContinueBtn" onclick="finish()" style="opacity:0.35;pointer-events:none;">Complete Registration →</button>
+    </div>
+    <div class="foot">feeldance.team · Mountain View, CA</div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="panel" id="sOK">
+    <div class="success">
+      <div class="s-ring">✓</div>
+      <h2>You're all set!</h2>
+      <p id="smsg">Welcome to Feel Dance Studio! We're so excited to have you.</p>
+      <div class="nsteps">
+        <div class="ns"><div class="ns-n">1</div><div class="ns-t">Signed copy sent to your email<span>Check your inbox for the completed agreement</span></div></div>
+        <div class="ns"><div class="ns-n">2</div><div class="ns-t">Your instructor will be in touch soon<span>To confirm your schedule and answer any questions</span></div></div>
+        <div class="ns"><div class="ns-n">3</div><div class="ns-t">Join our group chat<span>You'll receive a WhatsApp invite from the studio</span></div></div>
+      </div>
+    </div>
+    <div class="foot" style="margin-top:44px;">With us everyone can ballroom dance! · feeldance.team</div>
+  </div>
+
+</div>
+
+<script>
+  const ST = { type:null, track:null, prog:null, step:0, max:5 };
+
+  function showS(n) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+    document.getElementById(n >= ST.max ? 'sOK' : 's'+n).classList.add('on');
+    document.querySelectorAll('.sdot').forEach((d,i) => { d.classList.remove('active','done'); if(i<n) d.classList.add('done'); if(i===n) d.classList.add('active'); });
+    document.getElementById('prog').style.width = Math.min(n/(ST.max-1)*100,100)+'%';
+    window.scrollTo({top:0,behavior:'smooth'});
+    ST.step = n;
+  }
+
+  function next() { if(!ok(ST.step)) return; showS(ST.step+1); if(ST.step===3) setupP(); if(ST.step===4) setupC(); }
+  function back() { if(ST.step>0) showS(ST.step-1); }
+
+  const gv = id => document.getElementById(id)?.value.trim();
+  const gs = q => document.querySelector(`.opts[data-q="${q}"] .opt.sel`);
+
+  function ok(s) { return true; }
+
+  function pick(t) {
+    ST.type=t;
+    document.getElementById('wc').classList.toggle('sel',t==='child');
+    document.getElementById('wa').classList.toggle('sel',t==='adult');
+    sh('s1c',t==='child'); sh('s1a',t==='adult');
+    sh('s2c',t==='child'); sh('s2a',t==='adult');
+  }
+  function sh(id,v) { document.getElementById(id).style.display=v?'':'none'; }
+
+  function selTrack(el,v) {
+    document.querySelectorAll('.tcard').forEach(c=>c.classList.remove('sel'));
+    el.classList.add('sel'); ST.track=v;
+    document.getElementById('ackBox').style.display=(v==='scholarship'||v==='competitive')?'':'none';
+  }
+
+  function selProg(el,v) {
+    document.querySelectorAll('.pcard').forEach(c=>c.classList.remove('sel'));
+    el.classList.add('sel'); ST.prog=v;
+    const n=document.getElementById('pNote');
+    n.innerHTML = v==='group'
+      ? '<strong>Group classes</strong> — monthly membership. Billing details will be discussed with your instructor.'
+      : '<strong>Private lessons</strong> — per session or package. Invoiced via Zoho, Zelle accepted.';
+    n.style.display='';
+  }
+
+  function setupP() {
+    document.getElementById('pInfo').innerHTML = ST.type==='child'
+      ? '<strong>Children\'s programs:</strong> Group classes are a great start. Private lessons can be added later for competitive progress.'
+      : '<strong>Adult programs:</strong> Group classes are perfect for social and fitness goals. Private lessons are recommended for competition or event goals.';
+  }
+
+  function setupC() {
+    // Reset to idle
+    sh('cIdle',true); sh('cLoading',false); sh('cFrame',false); sh('cSigned',false); sh('cError',false);
+    document.getElementById('cContinueBtn').style.opacity='0.35';
+    document.getElementById('cContinueBtn').style.pointerEvents='none';
+  }
+
+  async function loadContract() {
+    sh('cIdle',false); sh('cLoading',true);
+
+    // ── YOUR MAKE WEBHOOK URL ──────────────────────────────────────
+    const MAKE_HOOK = 'https://hook.us2.make.com/3e45yuw16t8k9mkmipipgxisun3nk4bs';
+    // Make should: call esignatures.com API → return { sign_page_url: "..." }
+    // ──────────────────────────────────────────────────────────────
+
+    const isChild = ST.type === 'child';
+    const payload = {
+      action: 'get_sign_url',
+      type: ST.type,
+      template_id: isChild
+        ? 'e5175856-7206-479e-b529-d263974a1104'   // Kids
+        : '79037cc5-0f14-4d2f-82f0-4225e4e33bbd',  // Adults
+      signer: isChild ? {
+        name:   gv('pn') || 'Parent',
+        email:  gv('pe') || '',
+        phone:  gv('pp') || '',
+        parent: gv('pn') || '',
+        child:  gv('cn') || '',
+        dob:    gv('cdob') || ''
+      } : {
+        name:  gv('an') || 'Student',
+        email: gv('ae') || '',
+        phone: gv('ap') || ''
+      },
+      track: ST.track,
+      program: ST.prog
+    };
+
+    try {
+      if (MAKE_HOOK === 'https://hook.us2.make.com/3e45yuw16t8k9mkmipipgxisun3nk4bs') {
+        // ── DEMO MODE: simulate with a real esignatures.com test URL ──
+        await new Promise(r => setTimeout(r, 1200));
+        // In real mode, Make returns sign_page_url from esignatures.com API response
+        // For now show the frame with a placeholder
+        showSignFrame('https://esignatures.com/demo_sign_page');
+        return;
+      }
+
+      // Real mode: Make webhook must respond with JSON { sign_page_url: "..." }
+      const resp = await fetch(MAKE_HOOK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await resp.json();
+
+      if (data.sign_page_url) {
+        showSignFrame(data.sign_page_url);
+      } else {
+        throw new Error('No sign_page_url in response');
+      }
+
+    } catch(e) {
+      console.error(e);
+      sh('cLoading',false); sh('cError',true);
+    }
+  }
+
+  function showSignFrame(url) {
+    const iframe = document.getElementById('signIframe');
+    // Add embedded=yes as required by esignatures.com
+    iframe.src = url + (url.includes('?') ? '&' : '?') + 'embedded=yes';
+    sh('cLoading',false); sh('cFrame',true);
+    window.scrollTo({top:0,behavior:'smooth'});
+
+    // Listen for postMessage from esignatures.com iframe
+    window.addEventListener('message', function onMsg(e) {
+      if (e.data === 'signed' || e.data === 'contract-signed') {
+        window.removeEventListener('message', onMsg);
+        sh('cFrame',false); sh('cSigned',true);
+        // Unlock continue button
+        const btn = document.getElementById('cContinueBtn');
+        btn.style.opacity='1'; btn.style.pointerEvents='auto';
+        window.scrollTo({top:0,behavior:'smooth'});
+      }
+    });
+  }
+
+  function retrySend() { sh('cError',false); sh('cIdle',true); }
+
+  function toggleContinue() {
+    const btn = document.getElementById('cContinueBtn');
+    btn.style.opacity='1'; btn.style.pointerEvents='auto';
+  }
+
+  async function finish() {
+    const name = (ST.type==='child' ? (gv('cn')||'') : (gv('an')||'')).split(' ')[0];
+    document.getElementById('smsg').textContent = `Welcome to Feel Dance Studio, ${name || 'friend'}! We're so excited to have you.`;
+
+    // Also send full form data to Make for Airtable
+    const MAKE_HOOK = 'https://hook.us2.make.com/3e45yuw16t8k9mkmipipgxisun3nk4bs';
+    const data = {
+      action: 'new_student',
+      type: ST.type, track: ST.track, program: ST.prog,
+      submitted_at: new Date().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })
+    };
+    if(ST.type==='child') Object.assign(data,{parent_name:gv('pn'),parent_email:gv('pe'),parent_phone:gv('pp'),child_name:gv('cn'),child_age:gv('ca')});
+    else Object.assign(data,{name:gv('an'),email:gv('ae'),phone:gv('ap')});
+    if(MAKE_HOOK !== 'https://hook.us2.make.com/3e45yuw16t8k9mkmipipgxisun3nk4bs') {
+      try { await fetch(MAKE_HOOK,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); } catch(e){}
+    }
+    showS(99);
+  }
+
+  document.querySelectorAll('.opts').forEach(g => {
+    g.querySelectorAll('.opt').forEach(o => {
+      o.addEventListener('click',()=>{
+        if(g.dataset.type==='radio') g.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));
+        o.classList.toggle('sel');
+      });
+    });
+  });
+
+  function addRow() {
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td><input type="text" placeholder="Activity"></td><td><input type="number" min="0" max="40" placeholder="hrs" oninput="chkHrs()"></td>';
+    document.getElementById('aRows').appendChild(tr);
+  }
+  function chkHrs() {
+    let t=0; document.querySelectorAll('#aRows input[type="number"]').forEach(i=>t+=parseFloat(i.value)||0);
+    document.getElementById('aWarn').style.display=t>=6?'block':'none';
+  }
+</script>
+</body>
+</html>
